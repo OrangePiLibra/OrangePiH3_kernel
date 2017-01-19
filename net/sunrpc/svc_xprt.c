@@ -323,9 +323,9 @@ void svc_xprt_enqueue(struct svc_xprt *xprt)
 	if (!svc_xprt_has_something_to_do(xprt))
 		return;
 
-	cpu = get_cpu_light();
+	cpu = get_cpu();
 	pool = svc_pool_for_cpu(xprt->xpt_server, cpu);
-	put_cpu_light();
+	put_cpu();
 
 	spin_lock_bh(&pool->sp_lock);
 

@@ -97,7 +97,7 @@
 /*
  * Feature macros (disable/enable)
  */
-#if defined(CONFIG_SMP) && !defined(CONFIG_PREEMPT_RT_FULL)
+#ifdef CONFIG_SMP
 #define HAVE_PERCPU_SB	/* per cpu superblock counters are a 2.6 feature */
 #else
 #undef  HAVE_PERCPU_SB	/* per cpu superblock counters are a 2.6 feature */

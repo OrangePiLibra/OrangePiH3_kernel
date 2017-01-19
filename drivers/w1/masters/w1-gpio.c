@@ -42,7 +42,7 @@ static u8 w1_gpio_read_bit(void *data)
 	return gpio_get_value(pdata->pin) ? 1 : 0;
 }
 
-static int w1_gpio_probe(struct platform_device *pdev)
+static int __init w1_gpio_probe(struct platform_device *pdev)
 {
 	struct w1_bus_master *master;
 	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
@@ -56,10 +56,8 @@ static int w1_gpio_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	err = gpio_request(pdata->pin, "w1");
-	if (err) {
-		dev_err(&pdev->dev, "failed to request GPIO %d\n", pdata->pin);
+	if (err)
 		goto free_master;
-	}
 
 	master->data = pdata;
 	master->read_bit = w1_gpio_read_bit;
@@ -91,7 +89,7 @@ static int w1_gpio_probe(struct platform_device *pdev)
 	return err;
 }
 
-static int w1_gpio_remove(struct platform_device *pdev)
+static int __exit w1_gpio_remove(struct platform_device *pdev)
 {
 	struct w1_bus_master *master = platform_get_drvdata(pdev);
 	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
@@ -138,15 +136,14 @@ static struct platform_driver w1_gpio_driver = {
 		.name	= "w1-gpio",
 		.owner	= THIS_MODULE,
 	},
-	.probe = w1_gpio_probe,
-	.remove	= w1_gpio_remove,
+	.remove	= __exit_p(w1_gpio_remove),
 	.suspend = w1_gpio_suspend,
 	.resume = w1_gpio_resume,
 };
 
 static int __init w1_gpio_init(void)
 {
-	return platform_driver_register(&w1_gpio_driver);
+	return platform_driver_probe(&w1_gpio_driver, w1_gpio_probe);
 }
 
 static void __exit w1_gpio_exit(void)

@@ -68,5 +68,6 @@ obj-$(CONFIG_BCMDHD)	+= bcmdhd/
 
 obj-$(CONFIG_BRCMFMAC)	+= brcm80211/
 obj-$(CONFIG_BRCMSMAC)	+= brcm80211/
+obj-m	+= 8192cu/
 
 #obj-$(CONFIG_MT7601U) += mt7601u/

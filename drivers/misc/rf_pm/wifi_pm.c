@@ -73,6 +73,18 @@ int wifi_pm_gpio_ctrl(char *name, int level)
 }
 EXPORT_SYMBOL(wifi_pm_gpio_ctrl);
 
+#ifdef CONFIG_PROC_FS
+static int wifi_pm_power_stat(char *page, char **start, off_t off, int count, int *eof, void *data)
+{
+	char *p = page;
+
+#if defined(CONFIG_ARCH_SUN8IW7P1)
+	p += sprintf(p, "%s", wl_info.wl_power_state ? "0" : "1");
+#else
+	p += sprintf(p, "%s", wl_info.wl_power_state ? "1" : "0");
+#endif
+	return p - page;
+}
 static void scan_device(int onoff)
 {
 	int sdc_id = -1;
@@ -111,31 +123,16 @@ static void scan_device(int onoff)
 	}
 }
 
-static void wifi_power_ctrl(int power)
-{
-	wifi_pm_power(power);
-	mdelay(100);
-	scan_device(power);
-	mdelay(100);
-}
-
-#ifdef CONFIG_PROC_FS
-static int wifi_pm_power_stat(char *page, char **start, off_t off, int count, int *eof, void *data)
-{
-	char *p = page;
-
-#if defined(CONFIG_ARCH_SUN8IW7P1)
-	p += sprintf(p, "%s", wl_info.wl_power_state ? "0" : "1");
-#else
-	p += sprintf(p, "%s", wl_info.wl_power_state ? "1" : "0");
-#endif
-	return p - page;
-}
-
 static int wifi_pm_power_ctrl(struct file *file, const char __user *buffer, unsigned long count, void *data)
 {
 	int power = simple_strtoul(buffer, NULL, 10);
-	wifi_power_ctrl(power ? 1 : 0);
+	power = power ? 1 : 0;
+
+	wifi_pm_power(power);
+	mdelay(100);
+
+	scan_device(power);
+	mdelay(100);
 
 	return sizeof(power);
 }
@@ -267,7 +264,6 @@ EXPORT_SYMBOL(wifi_hwaddr_from_chipid);
 static int __devinit wifi_pm_probe(struct platform_device *pdev)
 {
 	awwifi_procfs_attach();
-	wifi_power_ctrl(1);
 	wifi_pm_msg("wifi gpio init is OK !!\n");
 	return 0;
 }
